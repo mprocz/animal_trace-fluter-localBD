@@ -13,44 +13,49 @@ String descriptionColumn = "descriptionColumn";
 String imageColumn = "imageColumn";
 
 class AnimalHelper {
-    static final AnimalHelper _instance = AnimalHelper.internal();
-    factory AnimalHelper() => _instance;
-    AnimalHelper.internal();
-    late Database _db;
-    
-    Future<Database> get db async {
-        _db ??= await initdb();
-        return _db;
-    }
+  static final AnimalHelper _instance = AnimalHelper.internal();
+  factory AnimalHelper() => _instance;
+  AnimalHelper.internal();
 
-    Future<Database> initdb() async {
-        final databasePath = await getDatabasesPath();
-        final path = join(databasePath, "animal.db");
-        return await openDatabase(
-            path,
-            version: 1,
-            onCreate: (Database db, int newVersion) async {
-                await db.execute(
-                    "CREATE TABLE $animalTable($idColumn INTEGER PRIMARY KEY, $nameColumn TEXT, $typeColumn TEXT, $weightColumn TEXT, $ageColumn TEXT, $descriptionColumn TEXT, $imageColumn TEXT)"
-                );
+  Database? _db;  // Agora, o _db pode ser nulo inicialmente.
 
-            },
+  Future<Database> get db async {
+    if (_db != null) return _db!;
+    _db = await initdb();
+    return _db!;
+  }
+
+  Future<Database> initdb() async {
+    final databasePath = await getDatabasesPath();
+    final path = join(databasePath, "animal.db");
+    return await openDatabase(
+      path,
+      version: 1,
+      onCreate: (Database db, int newVersion) async {
+        await db.execute(
+          "CREATE TABLE $animalTable("
+          "$idColumn INTEGER PRIMARY KEY, "
+          "$nameColumn TEXT, "
+          "$typeColumn TEXT, "
+          "$weightColumn INTEGER, "
+          "$ageColumn INTEGER, "
+          "$descriptionColumn TEXT, "
+          "$imageColumn TEXT)"
         );
-    }
+      },
+    );
+  }
 
-    Future<List<Animal>> getAllAnimals() async {
+  Future<List<Animal>> getAllAnimals() async {
     Database dbAnimal = await db;
-    List listMap = await dbAnimal.rawQuery("SELECT * FROM $animalTable");
-    List<Animal> listAnimal = [];
-    for (Map m in listMap) {
-      listAnimal.add(Animal.fromMap(m));
-    }
-    return listAnimal;
+    List<Map<String, dynamic>> listMap =
+        await dbAnimal.rawQuery("SELECT * FROM $animalTable");
+    return listMap.map((m) => Animal.fromMap(m)).toList();
   }
 
   Future<Animal?> getAnimal(int id) async {
     Database dbAnimal = await db;
-    List<Map> maps = await dbAnimal.query(
+    List<Map<String, dynamic>> maps = await dbAnimal.query(
       animalTable,
       columns: [idColumn, nameColumn, typeColumn, weightColumn, ageColumn, descriptionColumn, imageColumn],
       where: "$idColumn = ?",
@@ -70,57 +75,59 @@ class AnimalHelper {
 
   Future<int> updateAnimal(Animal animal) async {
     Database dbAnimal = await db;
-    return await dbAnimal.update(animalTable, animal.toMap(),
-        where: "$idColumn = ?", whereArgs: [animal.id]);
+    return await dbAnimal.update(
+      animalTable,
+      animal.toMap(),
+      where: "$idColumn = ?",
+      whereArgs: [animal.id],
+    );
   }
 
   Future<int> deleteAnimal(int id) async {
     Database dbAnimal = await db;
-    return await dbAnimal
-        .delete(animalTable, where: "$idColumn = ?", whereArgs: [id]);
+    return await dbAnimal.delete(
+      animalTable,
+      where: "$idColumn = ?",
+      whereArgs: [id],
+    );
   }
 }
 
 class Animal {
-    Animal();
+  int? id;
+  String name = '';
+  String type = '';
+  int weight = 0;
+  int age = 0;
+  String description = '';
+  String image = '';
 
-    int id;
-    String name;
-    String type;
-    int weight;
-    int age;
-    String description;
-    String image;
+  Animal();
 
-    Animal.fromMap(Map map) {
-        id = map[idColumn];
-        name = map[nameColumn];
-        type = map[typeColumn];
-        weight = map[weightColumn];
-        age = map[ageColumn];
-        description = map[descriptionColumn];
-        image = map[imageColumn];
-    }
+  Animal.fromMap(Map<String, dynamic> map) {
+    id = map[idColumn] as int?;
+    name = map[nameColumn] as String;
+    type = map[typeColumn] as String;
+    weight = map[weightColumn] as int;
+    age = map[ageColumn] as int;
+    description = map[descriptionColumn] as String;
+    image = map[imageColumn] as String;
+  }
 
-    Map toMap() {
-        Map<String, dynamic> map = {
-            idColumn: id,
-            nameColumn: name,
-            typeColumn:type,
-            weightColumn: weight,
-            ageColumn: age,
-            descriptionColumn: description,
-            imageColumn: image
-        };
+  Map<String, Object?> toMap() {
+    return {
+      if (id != null) idColumn: id,
+      nameColumn: name,
+      typeColumn: type,
+      weightColumn: weight,
+      ageColumn: age,
+      descriptionColumn: description,
+      imageColumn: image,
+    };
+  }
 
-        if (id != null) {
-            map[idColumn] = id;
-        }
-        return map;
-    }
-
-    @override
-    String toString() {
-        return "Contact(id: $id, name: $name, type:$type, weight:$weight, age: $age, description: $description)";
-    }
- }
+  @override
+  String toString() {
+    return "Animal(id: $id, name: $name, type: $type, weight: $weight, age: $age, description: $description, image: $image)";
+  }
+}
