@@ -14,7 +14,6 @@ void main() {
       '/': (context) => LoginPage(),
       '/home': (context) => HomePage(),
       '/register': (context) => RegisterPage(),
-      '/animals': (context) => AnimalsPage(),
       '/animal-profile': (context) => AnimalProfilePage(),
       '/petlist': (context) => PetListPage(),
       //'/animal-edit': (context) => AnimalEditPage(),
