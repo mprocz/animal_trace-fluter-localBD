@@ -1,207 +1,93 @@
 import 'package:animal_trace/helper/animal_helper.dart';
-import 'package:animal_trace/view/animal_page.dart';
-import 'package:animal_trace/view/animal_profile_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:sqflite/sqflite.dart';
+import 'pet_list_page.dart';
+import 'animal_profile_page.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class HomePage extends StatelessWidget {
+  const HomePage({Key? key}) : super(key: key);
 
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  AnimalHelper helper = AnimalHelper();
-  int _currentIndex = 0;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: Padding(
-          padding: const EdgeInsets.all(0.0),
-          child: Image.asset(
-            "assets/images/garra_logo.png", // Caminho da imagem
-            fit: BoxFit.contain,
-          ),
-        ),
-        title: Text(
-          "AnimalTrace",
-          style: TextStyle(
-              color: Colors.white, fontSize: 25.0, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
+        title: const Text('Página Inicial'),
         backgroundColor: Color.fromARGB(255, 79, 192, 117),
       ),
-      body: Container(
-        padding: EdgeInsets.fromLTRB(20.0, 50.0, 20.0, 30.0),
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("assets/images/background.jpg"),
-            fit: BoxFit.cover,
-          ),
-        ),
+      body: Center(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            GestureDetector(
-              child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(20.0),
-                  decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 79, 192, 117),
-                    borderRadius: BorderRadius.circular(15.0),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Text("Meus Animais",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 20.0,
-                              fontWeight: FontWeight.w600,
-                              color: Color.fromARGB(255, 245, 243, 243))),
-                      SizedBox(
-                        height: 10.0,
-                      ),
-                      Text("Estimação",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 30.0,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white)),
-                    ],
-                  )),
-            ),
-            SizedBox(
-              height: 30.0,
-            ),
-            GestureDetector(
-              child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(20.0),
-                  decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 79, 192, 117),
-                    borderRadius: BorderRadius.circular(15.0),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Text("Meus Animais",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 20.0,
-                              fontWeight: FontWeight.w600,
-                              color: Color.fromARGB(255, 245, 243, 243))),
-                      SizedBox(
-                        height: 10.0,
-                      ),
-                      Text("Criação",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 30.0,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white)),
-                    ],
-                  )),
-            ),
-            SizedBox(
-              height: 50.0,
-            ),
-            GestureDetector(
-              onTap: () {
+            ElevatedButton(
+              onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AnimalProfilePage(),
-                  ),
+                      builder: (context) => const AnimalProfilePage()),
                 );
               },
-              child: Container(
-                  height: MediaQuery.of(context).size.width * 0.7,
-                  padding: EdgeInsets.all(20.0),
-                  decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 79, 192, 117),
-                    borderRadius: BorderRadius.circular(15.0),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.add_circle_outline_rounded,
-                          color: Colors.white,
-                          size: 50.0,
-                        ),
-                        SizedBox(
-                          height: 20.0,
-                        ),
-                        Text("Novo Animal",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 30.0,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white)),
-                      ]),
-                  width: double.infinity),
-            )
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color.fromARGB(255, 79, 192, 117),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(
+                    vertical: 15.0, horizontal: 30.0),
+              ),
+              child: const Text(
+                'Criar Novo Animal',
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () async {
+                // Limpar o banco de dados
+                await clearAnimalTable();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Banco de dados limpo!")),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color.fromARGB(255, 79, 192, 117),
+              ),
+              child: const Text("Limpar Banco de Dados"),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const PetListPage()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color.fromARGB(255, 79, 192, 117),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(
+                    vertical: 15.0, horizontal: 30.0),
+              ),
+              child: const Text(
+                'Ver Animais',
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
+              ),
+            ),
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (int _currentIndex) {},
-        //showSelectedLabels: false,
-        //showUnselectedLabels: false,
-        iconSize: 35.0,
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Minha Conta',
-          ),
-        ],
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white,
-        backgroundColor: Color.fromARGB(255, 79, 192, 117),
-      ),
     );
   }
-
-  void showContactPage({Animal? animal}) async {
-    final retContact = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AnimalProfilePage(animal: animal),
-      ),
-    );
-    if (retContact != null) {
-      if (animal != null) {
-        await helper.updateAnimal(retContact);
-      } else {
-        await helper.saveAnimal(retContact);
-      }
-    }
+    Future<void> clearAnimalTable() async {
+    AnimalHelper helper = AnimalHelper();
+    Database db = await helper.db;
+    await db.delete('animalTable');  // Deletar todos os animais
   }
 }
