@@ -1,7 +1,7 @@
+import 'dart:io';
+
 import 'package:animal_trace/helper/animal_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AnimalProfilePage extends StatefulWidget {
@@ -35,12 +35,13 @@ class _AnimalProfilePageState extends State<AnimalProfilePage> {
       oldName = _editedAnimal.name;
       _nameController.text = _editedAnimal.name;
       _typeController.text = _editedAnimal.type;
-      _weightController.text = _editedAnimal.weight as String;
-      _ageController.text = _editedAnimal.age as String;
+      _weightController.text = _editedAnimal.weight.toString();
+      _ageController.text = _editedAnimal.age.toString();
       _descriptionController.text = _editedAnimal.description;
     }
   }
 
+  @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: requestPop,
@@ -99,19 +100,26 @@ class _AnimalProfilePageState extends State<AnimalProfilePage> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           image: DecorationImage(
-                            image: const AssetImage("assets/images/avatar.jpg"),
+                            image: _editedAnimal.image.isNotEmpty
+                                ? FileImage(File(_editedAnimal.image))
+                                : const AssetImage("assets/images/avatar.jpg")
+                                    as ImageProvider,
+                            fit: BoxFit.cover,
                           ),
                         ),
                       ),
-                      onTap: (() {
-                        ImagePicker.pickImage(source: ImageSource.gallery)
-                            .then((file) => {
-                                  setState((() {
-                                    ;
-                                    _editedAnimal.image = file.path;
-                                  }))
-                                });
-                      }),
+                      onTap: () async {
+                        final ImagePicker picker = ImagePicker();
+                        final XFile? file =
+                            await picker.pickImage(source: ImageSource.gallery);
+                        if (file != null) {
+                          setState(() {
+                            _editedAnimal.image = file.path;  // Salvando o caminho da imagem
+                          });
+                        } else {
+                          print("Nenhuma imagem foi selecionada.");
+                        }
+                      },
                     ),
                     SizedBox(height: 20),
                     const SizedBox(height: 30.0),
@@ -119,6 +127,9 @@ class _AnimalProfilePageState extends State<AnimalProfilePage> {
                       controller: _nameController,
                       focusNode: _nameFocus,
                       decoration: const InputDecoration(label: Text("Nome")),
+                      onSubmitted: (value) {
+                        _saveAnimal();
+                      },
                       onChanged: (value) {
                         _userEdited = true;
                         setState(() {
@@ -145,7 +156,7 @@ class _AnimalProfilePageState extends State<AnimalProfilePage> {
                       onChanged: (value) {
                         _userEdited = true;
                         setState(() {
-                          _editedAnimal.weight = value as int;
+                          _editedAnimal.weight = int.tryParse(value) ?? 0;
                         });
                       },
                       keyboardType: TextInputType.number,
@@ -157,7 +168,7 @@ class _AnimalProfilePageState extends State<AnimalProfilePage> {
                       onChanged: (value) {
                         _userEdited = true;
                         setState(() {
-                          _editedAnimal.age = value as int;
+                          _editedAnimal.age = int.tryParse(value) ?? 0;
                         });
                       },
                       keyboardType: TextInputType.number,
@@ -175,7 +186,15 @@ class _AnimalProfilePageState extends State<AnimalProfilePage> {
                       },
                       keyboardType: TextInputType.text,
                     ),
-                  ]),
+                    SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: _saveAnimal,
+                      child: Text('Salvar Animal'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color.fromARGB(255, 79, 192, 117),
+                      ),
+                    ),
+                  ]), 
                 ),
               ],
             ),
@@ -185,34 +204,49 @@ class _AnimalProfilePageState extends State<AnimalProfilePage> {
     );
   }
 
-  Future<bool> requestPop() {
-    if (_userEdited) {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text("Descartar alterações"),
-            content: const Text("Se sair, as alterações serão perdidas"),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text("Cancelar"),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                },
-                child: const Text("Sim"),
-              )
-            ],
-          );
-        },
+  Future<bool> requestPop() async {
+    if (!_userEdited) return true;
+
+    final shouldPop = await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Descartar alterações"),
+          content: const Text("Se sair, as alterações serão perdidas"),
+          actions: [
+            TextButton(
+              child: const Text("Cancelar"),
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+            TextButton(
+              child: const Text("Sim"),
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
+          ],
+        );
+      },
+    );
+
+    return shouldPop ?? false;
+  }
+
+  void _saveAnimal() async {
+    FocusScope.of(context).unfocus();
+
+    if (_editedAnimal.name.isEmpty || _editedAnimal.type.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("Por favor, preencha todos os campos obrigatórios")),
       );
-      return Future.value(false);
+      return;
     }
-    return Future.value(true);
+
+    AnimalHelper helper = AnimalHelper();
+    Animal savedAnimal = await helper.saveAnimal(_editedAnimal);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Animal ${savedAnimal.name} salvo com sucesso!")),
+    );
+    Navigator.pushReplacementNamed(context, '/');
   }
 }
